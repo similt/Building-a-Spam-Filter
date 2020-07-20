@@ -1,0 +1,120 @@
+import pandas as pd
+df=pd.read_csv("SMSSpamCollection",sep='\t',header=None,names=['Label', 'SMS'])
+df.shape
+df["Label"].value_counts()
+df["Label"].value_counts(normalize=True)
+pspam=df["Label"].value_counts().values[1]*100/len(df)
+pham=df["Label"].value_counts().values[0]*100/len(df)
+print(pspam,pham)
+int(round(0.8*5572,0)) # 80 % is chosen to get train dataset and 20% for training set
+random=df.sample(frac=1.0,random_state=1)
+random.shape
+train=random[:4458].reset_index(drop=True)
+test=random[4458:].reset_index(drop=True)
+print(train.shape)
+print(test.shape)
+train["Label"].value_counts()
+train["Label"].value_counts(normalize=True)
+train["SMS"]=train["SMS"].str.replace('\W'," ").str.lower()
+vocabulary=[]
+for i in train["SMS"]: 
+    for word in i.split(): 
+        vocabulary.append(word)
+vocabulary=set(vocabulary)
+vocabulary=list(vocabulary)
+len(vocabulary)
+vocabulary[:5]
+word_counts_per_sms={}
+for i in vocabulary:
+    word_counts_per_sms[i]=[0]*len(train)
+for index, sms in enumerate(train["SMS"]): 
+    sms=sms.split()
+    for word in sms: 
+        word_counts_per_sms[word][index]+=1
+        
+dicta=pd.DataFrame(word_counts_per_sms)
+comb=pd.concat([train,dicta],axis=1)
+comb.shape
+print(comb["Label"].value_counts(normalize=True))
+pspam=0.13459
+pham=0.86541
+print(pspam,pham)
+nvoc=len(vocabulary)
+print(nvoc)
+wc1=train[train["Label"]=='spam']
+wc1["SMS"]=wc1["SMS"].str.split()
+wspam=0
+for i in wc1["SMS"]:
+    wspam=wspam+len(i)
+print(wspam)
+wc2=train[train["Label"]=='ham']
+wc2["SMS"]=wc2["SMS"].str.split()
+wham=0
+for i in wc2["SMS"]:
+    wham=wham+len(i)
+print(wham)
+wc1=train[train["Label"]=='spam']
+wc2=train[train["Label"]=='ham']
+alpha=1
+dictspam={}
+dictham={}
+for i in vocabulary: 
+    ic=0
+    dictspam[i]=0
+    ic=wc1["SMS"].str.count(i).sum()
+    dictspam[i]=(ic+alpha)/(wspam+alpha*nvoc) 
+    dictham[i]=0
+    ic=wc2["SMS"].str.count(i).sum()
+    dictham[i]=(ic+alpha)/(wham+alpha*nvoc) 
+    
+import re
+def classify(message):
+    message = re.sub('\W', ' ', message)
+    message = message.lower()
+    message = message.split()
+    p_spam=pspam
+    p_ham =pham
+    p_spam_given_message = p_spam
+    p_ham_given_message = p_ham
+    '''    
+    This is where we calculate:
+    p_spam_given_message = ?
+    p_ham_given_message = ?
+    '''    
+    for i in message: 
+        if i in vocabulary: 
+            p_spam_given_message=p_spam_given_message*dictspam[i]
+            p_ham_given_message =p_ham_given_message*dictham[i]
+        
+    print('P(Spam|message):', p_spam_given_message)
+    print('P(Ham|message):', p_ham_given_message)
+    if p_ham_given_message > p_spam_given_message:
+        print('Label: Ham')
+        return 'ham'
+    elif p_ham_given_message < p_spam_given_message:
+        print('Label: Spam')
+        return 'spam'
+    else:
+        print('Equal proabilities, have a human classify this!')
+        
+   classify("WINNER!! This is the secret code to unlock the money: C3421.")
+   classify("Sounds good, Tom, then see u there")
+test['predicted'] = test['SMS'].apply(classify)
+test.head()
+correct=0
+total=len(test)
+for index,row in test.iterrows(): 
+    if row["Label"]==row["predicted"]:
+        correct+=1
+accuracy=correct/total
+print(accuracy)
+
+input_df = [{'name':'Sujeet', 'age':10}, 
+            {'name':'Sameer', 'age':11}, 
+            {'name':'Sumit', 'age':12}] 
+df = pd.DataFrame(input_df) 
+df
+
+for index,row in df.iterrows():
+    print(row["name"],row["age"])
+    
