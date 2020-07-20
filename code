@@ -1,4 +1,5 @@
 import pandas as pd
+## The data can be downloaded from https://archive.ics.uci.edu/ml/datasets/sms+spam+collection
 df=pd.read_csv("SMSSpamCollection",sep='\t',header=None,names=['Label', 'SMS'])
 df.shape
 df["Label"].value_counts()
